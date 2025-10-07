@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # SpotBlock - Spotify Ad Blocker Script
-# Created by Gaya KACI
+# by Gaya KACI
 # This script modifies the hosts file to block Spotify advertisements
 
 # Spotify app bundle identifier
