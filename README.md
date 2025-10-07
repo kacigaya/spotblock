@@ -1,4 +1,4 @@
-# 🚫🎵 SpotBlock - Spotify Ad Blocker  
+# SpotBlock - Spotify Ad Blocker  
 
 A **cross-platform Bash script** that **blocks Spotify ads** by modifying your system's `hosts` file. Works on both macOS and Windows!
 
@@ -10,26 +10,26 @@ A **cross-platform Bash script** that **blocks Spotify ads** by modifying your s
 - **Windows**: Install [Git Bash](https://git-scm.com/download/win)
 
 ### Steps
-1️⃣ **Clone the repository** 📂  
-2️⃣ **Make the script executable**:  
+1️ **Clone the repository** 📂  
+2️ **Make the script executable**:  
    ```bash
    chmod +x spotblock.sh
    ```
 
-## 🚀 Usage  
+## Usage  
 
 ### On macOS:
 ```bash
-# Block Spotify ads 🚫
+# Block Spotify ads
 sudo ./spotblock.sh block  
 
-# Restore the original hosts file 🔄
+# Restore the original hosts file
 sudo ./spotblock.sh restore  
 
-# Check status 🔍
+# Check status
 sudo ./spotblock.sh status  
 
-# Clear Spotify cache 🧹
+# Clear Spotify cache
 sudo ./spotblock.sh clear-cache
 ```
 
@@ -38,40 +38,39 @@ sudo ./spotblock.sh clear-cache
 2. Navigate to the script directory
 3. Run the same commands as above (without sudo):
 ```bash
-# Block Spotify ads 🚫
+# Block Spotify ads
 ./spotblock.sh block  
 
-# Restore the original hosts file 🔄
+# Restore the original hosts file
 ./spotblock.sh restore  
 
-# Check status 🔍
+# Check status
 ./spotblock.sh status  
 
-# Clear Spotify cache 🧹
+# Clear Spotify cache
 ./spotblock.sh clear-cache
 ```
 
-## ⚙️ How It Works  
+## How It Works  
 
-🛠️ **SpotBlock** modifies the system's hosts file:
+**SpotBlock** modifies the system's hosts file:
 - **macOS**: `/etc/hosts`
 - **Windows**: `C:\Windows\System32\drivers\etc\hosts`
 
-🚫 This prevents ads from loading while you enjoy your music.  
+This prevents ads from loading while you enjoy your music.  
 
-## 🔴 Important Notes  
+## Important Notes  
 
-✅ **Automatic backup** 🗂️: The script **creates a backup** of the `hosts` file before making any changes.  
-✅ **Restart required** 🔄: After blocking ads, **Spotify must be restarted** for the changes to take effect.  
-✅ **Cache clearing** 🧹: If ads persist, try clearing the cache with the `clear-cache` command.  
-✅ **Updates needed** 🔄: Spotify may change its ad domains, so periodic **updates** to the blocklist may be required.  
+**Automatic backup** : The script **creates a backup** of the `hosts` file before making any changes.  
+**Restart required** : After blocking ads, **Spotify must be restarted** for the changes to take effect.  
+**Cache clearing** : If ads persist, try clearing the cache with the `clear-cache` command.  
+**Updates needed** : Spotify may change its ad domains, so periodic **updates** to the blocklist may be required.  
 
-## ⚠️ Disclaimer  
+## Disclaimer  
 
-📢 **This script is provided for educational purposes only.** Modifying system files may have unintended consequences. **Use at your own risk.**  
-📡 **Spotify may update its system to bypass this method,** so effectiveness may vary over time.  
+**This script is provided for educational purposes only.** Modifying system files may have unintended consequences. **Use at your own risk.**  
+**Spotify may update its system to bypass this method,** so effectiveness may vary over time.  
 
-## 📜 License  
+## License  
 
-📝 **MIT License** - Open-source project, free to use and modify.  
-
+**MIT License** - Open-source project, free to use and modify.
