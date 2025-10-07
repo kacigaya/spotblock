@@ -16,7 +16,7 @@ A **cross-platform Bash script** that **blocks Spotify ads** by modifying your s
    chmod +x spotblock.sh
    ```
 
-## Usage  
+## Usage
 
 ### On macOS:
 ```bash
