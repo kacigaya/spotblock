@@ -3,15 +3,15 @@
 A **cross-platform Bash script** that **blocks Spotify ads** by modifying your system's `hosts` file. Works on both macOS and Windows!
 
 # ![Spotify Logo](https://upload.wikimedia.org/wikipedia/commons/2/26/Spotify_logo_with_text.svg)  
-## 🔧 Installation  
+## Installation  
 
 ### Prerequisites
 - **macOS**: No additional requirements
 - **Windows**: Install [Git Bash](https://git-scm.com/download/win)
 
 ### Steps
-1️ **Clone the repository** 📂  
-2️ **Make the script executable**:  
+1 - **Clone the repository** 📂  
+2 - **Make the script executable**:  
    ```bash
    chmod +x spotblock.sh
    ```
