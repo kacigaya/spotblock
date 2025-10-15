@@ -10,7 +10,7 @@ A **cross-platform Bash script** that **blocks Spotify ads** by modifying your s
 - **Windows**: Install [Git Bash](https://git-scm.com/download/win)
 
 ### Steps
-1 - **Clone the repository** 📂  
+1 - **Clone the repository**  
 2 - **Make the script executable**:  
    ```bash
    chmod +x spotblock.sh
