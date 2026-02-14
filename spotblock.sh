@@ -11,16 +11,16 @@ set -e
 set -o pipefail
 trap 'echo "Error occurred. Exiting..." >&2' ERR
 
-# Check for root privileges
-if [ "$(id -u)" -ne 0 ]; then
-  echo "This script must be run as root (sudo)" >&2
-  exit 1
-fi
-
 # Platform detection
 IsWindows() {
   [[ "$OSTYPE" == "msys"* || "$OSTYPE" == "cygwin"* ]]
 }
+
+# Check for root privileges (skip on Windows)
+if ! IsWindows && [ "$(id -u)" -ne 0 ]; then
+  echo "This script must be run as root (sudo)" >&2
+  exit 1
+fi
 
 # Function to get hosts file location
 GetHostsFile() {
@@ -90,12 +90,12 @@ SkipAudioAds() {
   # Enhanced Spotify preferences modifications
   if [ -f "$spotify_prefs" ]; then
     echo "Optimizing Spotify preferences..."
-    echo "audio.play_bitrate_enumeration=0" >>"$spotify_prefs"
-    echo "ui.track_notifications_enabled=false" >>"$spotify_prefs"
-    echo "audio.normalize_v2=false" >>"$spotify_prefs"
-    echo "audio.gapless_playback=false" >>"$spotify_prefs"
-    echo "ui.animated_artwork=false" >>"$spotify_prefs"
-    echo "ui.show_friend_feed=false" >>"$spotify_prefs"
+    grep -q "audio.play_bitrate_enumeration=0" "$spotify_prefs" || echo "audio.play_bitrate_enumeration=0" >>"$spotify_prefs"
+    grep -q "ui.track_notifications_enabled=false" "$spotify_prefs" || echo "ui.track_notifications_enabled=false" >>"$spotify_prefs"
+    grep -q "audio.normalize_v2=false" "$spotify_prefs" || echo "audio.normalize_v2=false" >>"$spotify_prefs"
+    grep -q "audio.gapless_playback=false" "$spotify_prefs" || echo "audio.gapless_playback=false" >>"$spotify_prefs"
+    grep -q "ui.animated_artwork=false" "$spotify_prefs" || echo "ui.animated_artwork=false" >>"$spotify_prefs"
+    grep -q "ui.show_friend_feed=false" "$spotify_prefs" || echo "ui.show_friend_feed=false" >>"$spotify_prefs"
   fi
 }
 
@@ -152,6 +152,10 @@ ModifySpotifyBinary() {
 }
 
 BlockSpotifyAds() {
+  # Call audio ad skipping and binary modification functions
+  SkipAudioAds
+  ModifySpotifyBinary
+
   local hosts_file
   hosts_file=$(GetHostsFile)
 
@@ -189,13 +193,13 @@ BlockSpotifyAds() {
   # Enhanced Spotify preferences
   if [ -f "$spotify_prefs" ]; then
     echo "Applying advanced blocking configurations..."
-    echo "app.browser.smoothscroll=false" >>"$spotify_prefs"
-    echo "ui.show_ads=false" >>"$spotify_prefs"
-    echo "app.player.autoplay=false" >>"$spotify_prefs"
-    echo "browser.integration.show_download_button=false" >>"$spotify_prefs"
-    echo "ui.promo_enabled=false" >>"$spotify_prefs"
-    echo "audio.play_bitrate_enumeration=0" >>"$spotify_prefs"
-    echo "ui.track_notifications_enabled=false" >>"$spotify_prefs"
+    grep -q "app.browser.smoothscroll=false" "$spotify_prefs" || echo "app.browser.smoothscroll=false" >>"$spotify_prefs"
+    grep -q "ui.show_ads=false" "$spotify_prefs" || echo "ui.show_ads=false" >>"$spotify_prefs"
+    grep -q "app.player.autoplay=false" "$spotify_prefs" || echo "app.player.autoplay=false" >>"$spotify_prefs"
+    grep -q "browser.integration.show_download_button=false" "$spotify_prefs" || echo "browser.integration.show_download_button=false" >>"$spotify_prefs"
+    grep -q "ui.promo_enabled=false" "$spotify_prefs" || echo "ui.promo_enabled=false" >>"$spotify_prefs"
+    grep -q "audio.play_bitrate_enumeration=0" "$spotify_prefs" || echo "audio.play_bitrate_enumeration=0" >>"$spotify_prefs"
+    grep -q "ui.track_notifications_enabled=false" "$spotify_prefs" || echo "ui.track_notifications_enabled=false" >>"$spotify_prefs"
   fi
 
   local backup_dir
@@ -264,12 +268,15 @@ RestoreHostsFile() {
   fi
 
   echo "Restoring from backup: $latest_backup"
-  cp "$latest_backup" "/etc/hosts"
+  cp "$latest_backup" "$(GetHostsFile)"
   echo "Hosts file has been restored."
 }
 
 # Function to show current status
 ShowStatus() {
+  local hosts_file
+  hosts_file=$(GetHostsFile)
+
   if IsSpotifyRunning; then
     echo "Spotify is currently running."
   else
@@ -277,9 +284,9 @@ ShowStatus() {
   fi
 
   # Check if any ad domains are currently blocked
-  if grep -q "# Spotify Ad Blocking" "/etc/hosts"; then
+  if grep -q "# Spotify Ad Blocking" "$hosts_file"; then
     echo "Ad blocking is currently active."
-    echo "Number of blocked domains: $(grep -c "spotify" "/etc/hosts")"
+    echo "Number of blocked domains: $(grep -c "spotify" "$hosts_file")"
   else
     echo "Ad blocking is not active."
   fi
