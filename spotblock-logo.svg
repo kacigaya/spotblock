@@ -1,0 +1,130 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="100%" height="100%">
+  <style>
+    .bg { fill: #16181c; }
+    
+    .shield-stroke {
+      fill: none;
+      stroke: #f35b30;
+      stroke-width: 12;
+      stroke-linejoin: round;
+      stroke-dasharray: 1200;
+      stroke-dashoffset: 1200;
+      animation: drawLine 1s ease-out forwards;
+    }
+    .shield-fill-left {
+      fill: #4caf50;
+      opacity: 0;
+      animation: fadeIn 0.5s ease-out 0.8s forwards;
+    }
+    .shield-fill-right {
+      fill: #228b22;
+      opacity: 0;
+      animation: fadeIn 0.5s ease-out 0.8s forwards;
+    }
+
+    .wave {
+      fill: none;
+      stroke: #1a1a1a;
+      stroke-linecap: round;
+      stroke-dasharray: 300;
+      stroke-dashoffset: 300;
+    }
+    .wave-1 { stroke-width: 24; animation: drawLine 0.6s ease-out 1.2s forwards; }
+    .wave-2 { stroke-width: 30; animation: drawLine 0.6s ease-out 1.4s forwards; }
+    .wave-3 { stroke-width: 36; animation: drawLine 0.6s ease-out 1.6s forwards; }
+
+    .slash {
+      fill: none;
+      stroke: #f35b30;
+      stroke-width: 22;
+      stroke-linecap: round;
+      stroke-dasharray: 400;
+      stroke-dashoffset: 400;
+      animation: drawLine 0.5s cubic-bezier(0.8, 0, 0.2, 1) 2s forwards;
+    }
+    .slash-inner {
+      fill: none;
+      stroke: #ffffff;
+      stroke-width: 4;
+      stroke-linecap: round;
+      stroke-dasharray: 400;
+      stroke-dashoffset: 400;
+      animation: drawLine 0.5s cubic-bezier(0.8, 0, 0.2, 1) 2.1s forwards;
+    }
+
+    .text-spot {
+      fill: #ffffff;
+      font-family: Arial, sans-serif;
+      font-weight: 800;
+      font-size: 58px;
+      letter-spacing: -1px;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: slideUp 0.6s ease-out 2.4s forwards;
+    }
+    .text-block {
+      fill: #f35b30;
+      font-family: Arial, sans-serif;
+      font-weight: 800;
+      font-size: 58px;
+      letter-spacing: -1px;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: slideUp 0.6s ease-out 2.5s forwards;
+    }
+    .text-sub {
+      fill: #e0e0e0;
+      font-family: Arial, sans-serif;
+      font-size: 26px;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: slideUp 0.6s ease-out 2.7s forwards;
+    }
+
+    @keyframes drawLine {
+      to { stroke-dashoffset: 0; }
+    }
+    @keyframes fadeIn {
+      to { opacity: 1; }
+    }
+    @keyframes slideUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+
+  <rect class="bg" width="800" height="600" />
+
+  <g transform="translate(400, 220)">
+    
+    <path class="shield-fill-right" d="M 0,-110 C 60,-110 110,-125 110,-125 L 110,60 C 110,130 0,190 0,190 Z" />
+    
+    <path class="shield-fill-left" d="M 0,-110 C -60,-110 -110,-125 -110,-125 L -110,60 C -110,130 0,190 0,190 Z" />
+    
+    <path class="shield-stroke" d="M 0,-110 C 60,-110 110,-125 110,-125 L 110,60 C 110,130 0,190 0,190 C 0,190 -110,130 -110,60 L -110,-125 C -110,-125 -60,-110 0,-110 Z" />
+
+    <path class="wave wave-1" d="M -50,-30 C -20,-45 30,-45 60,-25" />
+    <path class="wave wave-2" d="M -65,15 C -25,-5 40,-5 80,25" />
+    <path class="wave wave-3" d="M -75,70 C -30,50 40,50 90,85" />
+
+    <g>
+      <line class="slash" x1="-80" y1="120" x2="80" y2="-80" />
+      <line class="slash" x1="-100" y1="-20" x2="-60" y2="-60" />
+      
+      <line class="slash-inner" x1="-70" y1="110" x2="70" y2="-70" />
+      
+      <line class="slash" x1="-15" y1="-15" x2="25" y2="25" stroke-width="14" />
+      <line class="slash" x1="25" y1="-15" x2="-15" y2="25" stroke-width="14" />
+    </g>
+
+  </g>
+
+  <g text-anchor="middle">
+    <text x="320" y="470" class="text-spot">SPOT</text>
+    <text x="500" y="470" class="text-block">BLOCK</text>
+    
+    <text x="400" y="515" class="text-sub">Spotify Ad Blocker</text>
+  </g>
+</svg>
