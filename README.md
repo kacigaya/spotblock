@@ -1,8 +1,14 @@
-# SpotBlock - Spotify Ad Blocker  
+<p align="center">
+  <img src="ghostpwn-logo.svg" alt="GhostPwn" width="200">
+</p>
 
-A **cross-platform Bash script** that **blocks Spotify ads** by modifying your system's `hosts` file. Works on both macOS and Windows!
+<h1 align="center">SpotBlock</h1>
 
-# ![Spotify Logo](https://upload.wikimedia.org/wikipedia/commons/2/26/Spotify_logo_with_text.svg)  
+<p align="center">
+   <strong>Spotify Ad Blocker</strong><br>
+   <em>A cross-platform Bash script that blocks Spotify ads by modifying your system's `hosts` file. Works on both macOS and Windows!</em>
+</p>
+
 ## Installation  
 
 ### Prerequisites
