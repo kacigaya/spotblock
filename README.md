@@ -15,12 +15,22 @@
 - **macOS**: No additional requirements
 - **Windows**: Install [Git Bash](https://git-scm.com/download/win)
 
-### Steps
-1 - **Clone the repository**  
-2 - **Make the script executable**:  
-   ```bash
-   chmod +x spotblock.sh
-   ```
+### One-line install
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/kacigaya/spotblock/main/spotblock.sh | bash
+```
+
+This installs SpotBlock as a `spotblock` command and runs the blocker.
+
+### Manual install
+
+```bash
+git clone https://github.com/kacigaya/spotblock.git
+cd spotblock
+chmod +x spotblock.sh
+./spotblock.sh install
+```
 
 ## Usage
 
@@ -29,14 +39,26 @@
 # Block Spotify ads
 sudo ./spotblock.sh block  
 
+# Or, after the one-line install
+sudo spotblock block
+
 # Restore the original hosts file
 sudo ./spotblock.sh restore  
+
+# Or, after the one-line install
+sudo spotblock restore
 
 # Check status
 sudo ./spotblock.sh status  
 
+# Or, after the one-line install
+sudo spotblock status
+
 # Clear Spotify cache
 sudo ./spotblock.sh clear-cache
+
+# Or, after the one-line install
+sudo spotblock clear-cache
 ```
 
 ### On Windows:
@@ -47,14 +69,26 @@ sudo ./spotblock.sh clear-cache
 # Block Spotify ads
 ./spotblock.sh block  
 
+# Or, after the one-line install
+spotblock block
+
 # Restore the original hosts file
 ./spotblock.sh restore  
+
+# Or, after the one-line install
+spotblock restore
 
 # Check status
 ./spotblock.sh status  
 
+# Or, after the one-line install
+spotblock status
+
 # Clear Spotify cache
 ./spotblock.sh clear-cache
+
+# Or, after the one-line install
+spotblock clear-cache
 ```
 
 ## How It Works  

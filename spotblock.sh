@@ -5,6 +5,8 @@
 
 # Spotify app bundle identifier
 SPOTIFY_BUNDLE_ID="com.spotify.client"
+SPOTBLOCK_SOURCE_URL="${SPOTBLOCK_SOURCE_URL:-https://raw.githubusercontent.com/kacigaya/spotblock/main/spotblock.sh}"
+SPOTBLOCK_RUN_AFTER_INSTALL="${SPOTBLOCK_RUN_AFTER_INSTALL:-1}"
 
 # Error handling
 set -e
@@ -16,11 +18,90 @@ IsWindows() {
   [[ "$OSTYPE" == "msys"* || "$OSTYPE" == "cygwin"* ]]
 }
 
-# Check for root privileges (skip on Windows)
-if ! IsWindows && [ "$(id -u)" -ne 0 ]; then
-  echo "This script must be run as root (sudo)" >&2
-  exit 1
-fi
+NeedCommand() {
+  if ! command -v "$1" >/dev/null 2>&1; then
+    echo "Error: '$1' is required but was not found." >&2
+    exit 1
+  fi
+}
+
+SelectInstallDir() {
+  if [ -n "${SPOTBLOCK_INSTALL_DIR:-}" ]; then
+    echo "$SPOTBLOCK_INSTALL_DIR"
+    return
+  fi
+
+  if IsWindows; then
+    if [ -w "/usr/local/bin" ]; then
+      echo "/usr/local/bin"
+    else
+      echo "$HOME/bin"
+    fi
+    return
+  fi
+
+  echo "/usr/local/bin"
+}
+
+InstallSpotBlock() {
+  NeedCommand curl
+  NeedCommand mktemp
+
+  local install_dir
+  install_dir="$(SelectInstallDir)"
+  local install_path="$install_dir/spotblock"
+  local temp_file
+
+  temp_file="$(mktemp)"
+  trap 'rm -f "$temp_file"' EXIT
+
+  echo "Downloading SpotBlock..."
+  curl -fsSL "$SPOTBLOCK_SOURCE_URL" -o "$temp_file"
+
+  echo "Installing SpotBlock to $install_path..."
+
+  if [ -d "$install_dir" ] && [ -w "$install_dir" ]; then
+    cp "$temp_file" "$install_path"
+    chmod +x "$install_path"
+  elif IsWindows; then
+    mkdir -p "$install_dir"
+    echo "Error: $install_dir is not writable. Run Git Bash as administrator or set SPOTBLOCK_INSTALL_DIR." >&2
+    exit 1
+  else
+    sudo mkdir -p "$install_dir"
+    sudo cp "$temp_file" "$install_path"
+    sudo chmod +x "$install_path"
+  fi
+
+  echo "SpotBlock installed successfully."
+
+  if [ "$SPOTBLOCK_RUN_AFTER_INSTALL" = "0" ]; then
+    echo "Skipping automatic block run because SPOTBLOCK_RUN_AFTER_INSTALL=0."
+    return
+  fi
+
+  echo "Running SpotBlock..."
+  if IsWindows; then
+    "$install_path" block
+  else
+    sudo "$install_path" block
+  fi
+
+  echo "Done. Use 'spotblock status' to check ad blocking status."
+}
+
+ShowUsage() {
+  echo "Usage: $0 [install|block|restore|status|clear-cache]" >&2
+  echo "  install     - Install SpotBlock as a system command and run the blocker" >&2
+  echo "  block       - Block Spotify ads by modifying hosts file" >&2
+  echo "  restore     - Restore hosts file from backup" >&2
+  echo "  status      - Show current Spotify and ad blocking status" >&2
+  echo "  clear-cache - Clear Spotify cache directory" >&2
+}
+
+ShouldInstallFromPipe() {
+  [ -z "$1" ] && [[ "$(basename "$0")" == "bash" || "$(basename "$0")" == "sh" ]]
+}
 
 # Function to get hosts file location
 GetHostsFile() {
@@ -99,62 +180,9 @@ SkipAudioAds() {
   fi
 }
 
-# Function to modify Spotify binary
-ModifySpotifyBinary() {
-  local spotify_path
-  if IsWindows; then
-    spotify_path="$APPDATA/Spotify/Spotify.exe"
-  else
-    spotify_path="/Applications/Spotify.app/Contents/MacOS/Spotify"
-  fi
-
-  if [ -f "$spotify_path" ]; then
-    echo "Creating backup of Spotify binary..."
-    cp "$spotify_path" "${spotify_path}.backup"
-
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-      # Add SpotBlock signature
-      perl -pi -e 's/Spotify/SpotBlock by Gaya KACI/g' "$spotify_path"
-
-      # Enhanced binary modifications
-      perl -pi -e 's/audio-sp-.+?\.spotify\.com/localhost/g' "$spotify_path"
-      perl -pi -e 's/audio-.+?\.spotify\.com/localhost/g' "$spotify_path"
-      perl -pi -e 's/heads-.+?\.spotify\.com/localhost/g' "$spotify_path"
-      perl -pi -e 's/audio-.+?\.scdn\.co/localhost/g' "$spotify_path"
-      perl -pi -e 's/\.spotify\.com:443/localhost:1/g' "$spotify_path"
-      perl -pi -e 's/\.spotifycdn\.net:443/localhost:1/g' "$spotify_path"
-      perl -pi -e 's/\.spotify\.com:4070/localhost:1/g' "$spotify_path"
-      perl -pi -e 's/spotify\.map\.fastly\.net/localhost/g' "$spotify_path"
-      perl -pi -e 's/spclient\.wg\.spotify\.com/localhost/g' "$spotify_path"
-      perl -pi -e 's/upgrade\.spotify\.com/localhost/g' "$spotify_path"
-
-      # Advanced ad blocking patterns
-      perl -pi -e 's/spotify:ad:[0-9a-zA-Z]+/spotify:track:blocked/g' "$spotify_path"
-      perl -pi -e 's/com\.spotify\.ads/com.spotify.blocked/g' "$spotify_path"
-      perl -pi -e 's/ad-logic\.spotify\.com/localhost/g' "$spotify_path"
-      perl -pi -e 's/adclick\.g\.doubleclick\.net/localhost/g' "$spotify_path"
-      perl -pi -e 's/adeventtracker\.spotify\.com/localhost/g' "$spotify_path"
-
-      # Premium feature unlocking
-      perl -pi -e 's/premium-www\.spotify\.com/localhost/g' "$spotify_path"
-      perl -pi -e 's/\.spotify\.com\/premium/localhost\/blocked/g' "$spotify_path"
-      perl -pi -e 's/spotify:app:premium/spotify:app:free/g' "$spotify_path"
-
-      # Disable tracking and analytics
-      perl -pi -e 's/analytics\.spotify\.com/localhost/g' "$spotify_path"
-      perl -pi -e 's/log\.spotify\.com/localhost/g' "$spotify_path"
-      perl -pi -e 's/pixel\.spotify\.com/localhost/g' "$spotify_path"
-      perl -pi -e 's/metric\.spotify\.com/localhost/g' "$spotify_path"
-
-      echo "Advanced binary modifications applied successfully."
-    fi
-  fi
-}
-
 BlockSpotifyAds() {
-  # Call audio ad skipping and binary modification functions
+  # Call audio ad skipping function
   SkipAudioAds
-  ModifySpotifyBinary
 
   local hosts_file
   hosts_file=$(GetHostsFile)
@@ -323,32 +351,52 @@ ClearSpotifyCache() {
 # Main script logic
 
 # Input validation
-if [ -n "$1" ] && [[ ! "$1" =~ ^(block|restore|status|clear-cache)$ ]]; then
+if ShouldInstallFromPipe "$1"; then
+  InstallSpotBlock
+  exit 0
+fi
+
+if [ -n "$1" ] && [[ ! "$1" =~ ^(install|block|restore|status|clear-cache)$ ]]; then
   echo "Error: Invalid argument '$1'" >&2
-  echo "Usage: $0 [block|restore|status|clear-cache]" >&2
+  ShowUsage
   exit 1
 fi
 
 if [ -z "$1" ]; then
-  echo "Usage: $0 [block|restore|status|clear-cache]" >&2
-  echo "  block       - Block Spotify ads by modifying hosts file" >&2
-  echo "  restore     - Restore hosts file from backup" >&2
-  echo "  status      - Show current Spotify and ad blocking status" >&2
-  echo "  clear-cache - Clear Spotify cache directory" >&2
+  ShowUsage
   exit 1
 fi
 
 case "$1" in
+"install")
+  InstallSpotBlock
+  ;;
 "block")
+  if ! IsWindows && [ "$(id -u)" -ne 0 ]; then
+    echo "This script must be run as root (sudo)" >&2
+    exit 1
+  fi
   BlockSpotifyAds
   ;;
 "restore")
+  if ! IsWindows && [ "$(id -u)" -ne 0 ]; then
+    echo "This script must be run as root (sudo)" >&2
+    exit 1
+  fi
   RestoreHostsFile
   ;;
 "status")
+  if ! IsWindows && [ "$(id -u)" -ne 0 ]; then
+    echo "This script must be run as root (sudo)" >&2
+    exit 1
+  fi
   ShowStatus
   ;;
 "clear-cache")
+  if ! IsWindows && [ "$(id -u)" -ne 0 ]; then
+    echo "This script must be run as root (sudo)" >&2
+    exit 1
+  fi
   ClearSpotifyCache
   ;;
 esac
