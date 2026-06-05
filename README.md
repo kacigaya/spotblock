@@ -6,14 +6,14 @@
 
 <p align="center">
    <strong>Spotify Ad Blocker</strong><br>
-   <em>A cross-platform Bash script that blocks Spotify ads by modifying your system's `hosts` file. Works on both macOS and Windows!</em>
+   <em>A cross-platform Bash script that blocks Spotify ads by modifying your system's `hosts` file.</em>
 </p>
 
 ## Installation  
 
 ### Prerequisites
-- **macOS**: No additional requirements
-- **Windows**: Install [Git Bash](https://git-scm.com/download/win)
+- macOS: no additional requirements
+- Windows: install [Git Bash](https://git-scm.com/download/win)
 
 ### One-line install
 
@@ -91,26 +91,26 @@ spotblock status
 spotblock clear-cache
 ```
 
-## How It Works  
+## How it works
 
-**SpotBlock** modifies the system's hosts file:
-- **macOS**: `/etc/hosts`
-- **Windows**: `C:\Windows\System32\drivers\etc\hosts`
+SpotBlock modifies the system's hosts file:
+- macOS: `/etc/hosts`
+- Windows: `C:\Windows\System32\drivers\etc\hosts`
 
-This prevents ads from loading while you enjoy your music.  
+This prevents ads from loading while you enjoy your music.
 
-## Important Notes  
+## Important notes
 
-**Automatic backup** : The script **creates a backup** of the `hosts` file before making any changes.  
-**Restart required** : After blocking ads, **Spotify must be restarted** for the changes to take effect.  
-**Cache clearing** : If ads persist, try clearing the cache with the `clear-cache` command.  
-**Updates needed** : Spotify may change its ad domains, so periodic **updates** to the blocklist may be required.  
+Automatic backup: the script creates a backup of the `hosts` file before making changes.
+Restart required: restart Spotify after blocking ads so the hosts changes take effect.
+Cache clearing: if ads persist, try clearing the cache with the `clear-cache` command.
+Updates needed: Spotify may change its ad domains, so the blocklist may need periodic updates.
 
 ## Disclaimer  
 
-**This script is provided for educational purposes only.** Modifying system files may have unintended consequences. **Use at your own risk.**  
-**Spotify may update its system to bypass this method,** so effectiveness may vary over time.  
+This script is provided for educational purposes only. Modifying system files may have unintended consequences. Use it at your own risk.
+Spotify may update its system to bypass this method, so effectiveness may vary over time.
 
 ## License  
 
-**MIT License** - Open-source project, free to use and modify.
+MIT License. Open-source project, free to use and modify.
