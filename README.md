@@ -34,62 +34,16 @@ chmod +x spotblock.sh
 
 ## Usage
 
-### On macOS:
-```bash
-# Block Spotify ads
-sudo ./spotblock.sh block  
+Run `sudo spotblock <command>` on macOS. On Windows, run Git Bash as administrator and use `spotblock <command>`.
 
-# Or, after the one-line install
-sudo spotblock block
+| Command | Description |
+| --- | --- |
+| `block` | Block Spotify ads |
+| `restore` | Restore the original hosts file |
+| `status` | Check ad blocking status |
+| `clear-cache` | Clear Spotify cache |
 
-# Restore the original hosts file
-sudo ./spotblock.sh restore  
-
-# Or, after the one-line install
-sudo spotblock restore
-
-# Check status
-sudo ./spotblock.sh status  
-
-# Or, after the one-line install
-sudo spotblock status
-
-# Clear Spotify cache
-sudo ./spotblock.sh clear-cache
-
-# Or, after the one-line install
-sudo spotblock clear-cache
-```
-
-### On Windows:
-1. Right-click on Git Bash and select "Run as administrator"
-2. Navigate to the script directory
-3. Run the same commands as above (without sudo):
-```bash
-# Block Spotify ads
-./spotblock.sh block  
-
-# Or, after the one-line install
-spotblock block
-
-# Restore the original hosts file
-./spotblock.sh restore  
-
-# Or, after the one-line install
-spotblock restore
-
-# Check status
-./spotblock.sh status  
-
-# Or, after the one-line install
-spotblock status
-
-# Clear Spotify cache
-./spotblock.sh clear-cache
-
-# Or, after the one-line install
-spotblock clear-cache
-```
+Before installing, use `sudo ./spotblock.sh <command>` on macOS or `./spotblock.sh <command>` on Windows.
 
 ## How it works
 

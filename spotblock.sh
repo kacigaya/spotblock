@@ -3,8 +3,6 @@
 # SpotBlock - Spotify Ad Blocker Script
 # This script modifies the hosts file to block Spotify advertisements
 
-# Spotify app bundle identifier
-SPOTIFY_BUNDLE_ID="com.spotify.client"
 SPOTBLOCK_SOURCE_URL="${SPOTBLOCK_SOURCE_URL:-https://raw.githubusercontent.com/kacigaya/spotblock/main/spotblock.sh}"
 SPOTBLOCK_RUN_AFTER_INSTALL="${SPOTBLOCK_RUN_AFTER_INSTALL:-1}"
 
@@ -121,69 +119,7 @@ IsSpotifyRunning() {
   fi
 }
 
-# Function to skip audio ads
-SkipAudioAds() {
-  # Add more aggressive audio ad domains
-  local audio_ad_domains=(
-    "audio-ak-spotify-com.akamaized.net"
-    "audio-fa.spotifycdn.com"
-    "audio-ak.spotify.com.edgesuite.net"
-    "heads-ak.spotify.com"
-    "audio-sp-*.pscdn.co"
-    "audio-sp-*.spotifycdn.net"
-    "audio-sp-*.spotify.map.fastly.net"
-    "audio-sp-*.spotify.com.edgesuite.net"
-    "audio-sp.spotify.com.akamaized.net"
-    "audio-fa.scdn.co"
-    "audio-sp.scdn.co"
-    "audio-akp.scdn.co"
-    "pubads.g.doubleclick.net"
-    "googleads.g.doubleclick.net"
-    "ads.spotify.com"
-    "audio-sp-*.spotify.com"
-    "audio-fa.spotify.com"
-    "heads-fa.spotify.com"
-    "heads4.spotify.com"
-    "media-match.com"
-    "omaze.com"
-    "analytics.spotify.com"
-    "log.spotify.com"
-    "pixel.spotify.com"
-    "pixel-static.spotify.com"
-    "crashdump.spotify.com"
-    "audio-ak.spotify.com"
-    "audio-akp-*.spotify.com"
-    "audio-cf.spotify.com"
-    "audio-gc.scdn.co"
-    "promoted.spotify.com"
-    "ad.spotify.com"
-    "adstudio.spotify.com"
-
-  )
-
-  # Additional blocking for audio ads
-  if IsWindows; then
-    local spotify_prefs="$APPDATA/Spotify/prefs"
-  else
-    local spotify_prefs="$HOME/Library/Application Support/Spotify/prefs"
-  fi
-
-  # Enhanced Spotify preferences modifications
-  if [ -f "$spotify_prefs" ]; then
-    echo "Optimizing Spotify preferences..."
-    grep -q "audio.play_bitrate_enumeration=0" "$spotify_prefs" || echo "audio.play_bitrate_enumeration=0" >>"$spotify_prefs"
-    grep -q "ui.track_notifications_enabled=false" "$spotify_prefs" || echo "ui.track_notifications_enabled=false" >>"$spotify_prefs"
-    grep -q "audio.normalize_v2=false" "$spotify_prefs" || echo "audio.normalize_v2=false" >>"$spotify_prefs"
-    grep -q "audio.gapless_playback=false" "$spotify_prefs" || echo "audio.gapless_playback=false" >>"$spotify_prefs"
-    grep -q "ui.animated_artwork=false" "$spotify_prefs" || echo "ui.animated_artwork=false" >>"$spotify_prefs"
-    grep -q "ui.show_friend_feed=false" "$spotify_prefs" || echo "ui.show_friend_feed=false" >>"$spotify_prefs"
-  fi
-}
-
 BlockSpotifyAds() {
-  # Call audio ad skipping function
-  SkipAudioAds
-
   local hosts_file
   hosts_file=$(GetHostsFile)
 
@@ -218,16 +154,25 @@ BlockSpotifyAds() {
     # Rest of existing domains...
   )
 
-  # Enhanced Spotify preferences
+  local spotify_prefs_entries=(
+    "app.browser.smoothscroll=false"
+    "ui.show_ads=false"
+    "app.player.autoplay=false"
+    "browser.integration.show_download_button=false"
+    "ui.promo_enabled=false"
+    "audio.play_bitrate_enumeration=0"
+    "ui.track_notifications_enabled=false"
+    "audio.normalize_v2=false"
+    "audio.gapless_playback=false"
+    "ui.animated_artwork=false"
+    "ui.show_friend_feed=false"
+  )
+
   if [ -f "$spotify_prefs" ]; then
     echo "Applying advanced blocking configurations..."
-    grep -q "app.browser.smoothscroll=false" "$spotify_prefs" || echo "app.browser.smoothscroll=false" >>"$spotify_prefs"
-    grep -q "ui.show_ads=false" "$spotify_prefs" || echo "ui.show_ads=false" >>"$spotify_prefs"
-    grep -q "app.player.autoplay=false" "$spotify_prefs" || echo "app.player.autoplay=false" >>"$spotify_prefs"
-    grep -q "browser.integration.show_download_button=false" "$spotify_prefs" || echo "browser.integration.show_download_button=false" >>"$spotify_prefs"
-    grep -q "ui.promo_enabled=false" "$spotify_prefs" || echo "ui.promo_enabled=false" >>"$spotify_prefs"
-    grep -q "audio.play_bitrate_enumeration=0" "$spotify_prefs" || echo "audio.play_bitrate_enumeration=0" >>"$spotify_prefs"
-    grep -q "ui.track_notifications_enabled=false" "$spotify_prefs" || echo "ui.track_notifications_enabled=false" >>"$spotify_prefs"
+    for entry in "${spotify_prefs_entries[@]}"; do
+      grep -Fq "$entry" "$spotify_prefs" || echo "$entry" >>"$spotify_prefs"
+    done
   fi
 
   local backup_dir
@@ -246,7 +191,7 @@ BlockSpotifyAds() {
 
   # Add ad domains to the hosts file
   for domain in "${ad_domains[@]}"; do
-    if ! grep -q "$domain" "$hosts_file"; then
+    if ! grep -Fq "$domain" "$hosts_file"; then
       echo "127.0.0.1 $domain" >>"$hosts_file"
       echo "Blocking: $domain"
     fi
@@ -266,9 +211,8 @@ RestoreHostsFile() {
     exit 1
   fi
 
-  # Get the most recent backup
   local latest_backup
-  latest_backup=$(find "$backup_dir" -maxdepth 1 -name 'hosts_backup_*' -type f -printf '%T@ %p\n' 2>/dev/null | sort -t' ' -k1 -n | tail -n1 | cut -d' ' -f2-)
+  latest_backup=$(ls -t "$backup_dir"/hosts_backup_* 2>/dev/null | head -n1 || true)
 
   if [ -z "$latest_backup" ]; then
     echo "No backup files found in $backup_dir" >&2
@@ -312,7 +256,7 @@ ShowStatus() {
   fi
 
   # Check if any ad domains are currently blocked
-  if grep -q "# Spotify Ad Blocking" "$hosts_file"; then
+  if grep -Fq "# Spotify Ad Blocking" "$hosts_file"; then
     echo "Ad blocking is currently active."
     echo "Number of blocked domains: $(grep -c "spotify" "$hosts_file")"
   else
@@ -367,36 +311,25 @@ if [ -z "$1" ]; then
   exit 1
 fi
 
+if [[ "$1" =~ ^(block|restore|status|clear-cache)$ ]] && ! IsWindows && [ "$(id -u)" -ne 0 ]; then
+  echo "This script must be run as root (sudo)" >&2
+  exit 1
+fi
+
 case "$1" in
 "install")
   InstallSpotBlock
   ;;
 "block")
-  if ! IsWindows && [ "$(id -u)" -ne 0 ]; then
-    echo "This script must be run as root (sudo)" >&2
-    exit 1
-  fi
   BlockSpotifyAds
   ;;
 "restore")
-  if ! IsWindows && [ "$(id -u)" -ne 0 ]; then
-    echo "This script must be run as root (sudo)" >&2
-    exit 1
-  fi
   RestoreHostsFile
   ;;
 "status")
-  if ! IsWindows && [ "$(id -u)" -ne 0 ]; then
-    echo "This script must be run as root (sudo)" >&2
-    exit 1
-  fi
   ShowStatus
   ;;
 "clear-cache")
-  if ! IsWindows && [ "$(id -u)" -ne 0 ]; then
-    echo "This script must be run as root (sudo)" >&2
-    exit 1
-  fi
   ClearSpotifyCache
   ;;
 esac
