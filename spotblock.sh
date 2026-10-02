@@ -130,7 +130,7 @@ BlockSpotifyAds() {
     spotify_prefs="$HOME/Library/Application Support/Spotify/prefs"
   fi
 
-  # Add new advanced blocking domains
+  # hosts entries match exact names only; wildcards have no effect.
   local ad_domains=(
     # Core Ad Services
     "pagead2.googlesyndication.com"
@@ -143,15 +143,6 @@ BlockSpotifyAds() {
     "heads4-ak.spotify.com"
     "heads4-fa.spotify.com"
     "heads-cf.spotify.com"
-
-    # Binary Patterns
-    "*.spotify.map.fastly.net"
-    "*.spotify.com.edgesuite.net"
-    "*.spotify.com.akamaized.net"
-    "*.spotifycdn.map.fastly.net"
-    "*.audio-ak-spotify-com.akamaized.net"
-
-    # Rest of existing domains...
   )
 
   local spotify_prefs_entries=(
