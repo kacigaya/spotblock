@@ -16,6 +16,19 @@ IsWindows() {
   [[ "$OSTYPE" == "msys"* || "$OSTYPE" == "cygwin"* ]]
 }
 
+IsLinux() {
+  [[ "$OSTYPE" == "linux"* ]]
+}
+
+# sudo on Linux sets HOME to /root, but Spotify data lives in the invoking user's home.
+GetUserHome() {
+  if IsLinux && [ -n "${SUDO_USER:-}" ]; then
+    getent passwd "$SUDO_USER" | cut -d: -f6
+  else
+    echo "$HOME"
+  fi
+}
+
 NeedCommand() {
   if ! command -v "$1" >/dev/null 2>&1; then
     echo "Error: '$1' is required but was not found." >&2
@@ -114,8 +127,41 @@ GetHostsFile() {
 IsSpotifyRunning() {
   if IsWindows; then
     tasklist | grep -i "Spotify.exe" >/dev/null
+  elif IsLinux; then
+    pgrep -x "spotify" >/dev/null
   else
     pgrep -x "Spotify" >/dev/null
+  fi
+}
+
+# Native and spotify-launcher installs use ~/.config; Flatpak uses its app data directory.
+GetSpotifyPrefs() {
+  if IsWindows; then
+    echo "$APPDATA/Spotify/prefs"
+  elif IsLinux; then
+    local user_home
+    user_home=$(GetUserHome)
+    local flatpak_prefs="$user_home/.var/app/com.spotify.Client/config/spotify/prefs"
+    if [ ! -f "$user_home/.config/spotify/prefs" ] && [ -f "$flatpak_prefs" ]; then
+      echo "$flatpak_prefs"
+    else
+      echo "$user_home/.config/spotify/prefs"
+    fi
+  else
+    echo "$HOME/Library/Application Support/Spotify/prefs"
+  fi
+}
+
+GetCacheDirs() {
+  if IsWindows; then
+    echo "$APPDATA/Spotify/Data"
+  elif IsLinux; then
+    local user_home
+    user_home=$(GetUserHome)
+    echo "$user_home/.cache/spotify"
+    echo "$user_home/.var/app/com.spotify.Client/cache/spotify"
+  else
+    echo "$HOME/Library/Application Support/Spotify/PersistentCache"
   fi
 }
 
@@ -124,11 +170,7 @@ BlockSpotifyAds() {
   hosts_file=$(GetHostsFile)
 
   local spotify_prefs
-  if IsWindows; then
-    spotify_prefs="$APPDATA/Spotify/prefs"
-  else
-    spotify_prefs="$HOME/Library/Application Support/Spotify/prefs"
-  fi
+  spotify_prefs=$(GetSpotifyPrefs)
 
   # hosts entries match exact names only; wildcards have no effect.
   local ad_domains=(
@@ -270,28 +312,34 @@ ShowStatus() {
 
 # Function to clear Spotify cache
 ClearSpotifyCache() {
-  local cache_dir
+  local base_dir
   if IsWindows; then
-    cache_dir="$APPDATA/Spotify/Data"
+    base_dir="$APPDATA"
   else
-    cache_dir="$HOME/Library/Application Support/Spotify/PersistentCache"
+    base_dir=$(GetUserHome)
   fi
 
-  if [ -z "$cache_dir" ] || [[ "$cache_dir" == *..* ]]; then
-    echo "Error: Invalid cache directory path" >&2
+  if [ -z "$base_dir" ]; then
+    echo "Error: Could not determine the Spotify data directory" >&2
     exit 1
   fi
 
-  if [ -d "$cache_dir" ]; then
-    if [[ "$cache_dir" != "$HOME/"* && "$cache_dir" != "$APPDATA"* ]]; then
+  local cache_dir
+  local found=0
+  while IFS= read -r cache_dir; do
+    if [[ "$cache_dir" == *..* || "$cache_dir" != "$base_dir/"* ]]; then
       echo "Error: Cache directory path is outside expected location" >&2
       exit 1
     fi
+    [ -d "$cache_dir" ] || continue
+    found=1
     echo "Clearing Spotify cache at: $cache_dir"
-    rm -rf "$cache_dir"
-    mkdir -p "$cache_dir"
+    # Delete contents only, so the directory keeps its owner when run with sudo.
+    find "$cache_dir" -mindepth 1 -delete
     echo "Cache cleared successfully."
-  else
+  done < <(GetCacheDirs)
+
+  if [ "$found" -eq 0 ]; then
     echo "Spotify cache directory not found."
   fi
 }
