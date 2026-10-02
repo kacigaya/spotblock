@@ -6,7 +6,7 @@
 
 <p align="center">
    <strong>Spotify ad blocker for macOS, Linux, and Windows.</strong><br>
-   <em>A single Bash script that blocks ad domains through your system's <code>hosts</code> file.</em>
+   <em>A Bash script, with a PowerShell version for Windows, that blocks ad domains through your system's <code>hosts</code> file.</em>
 </p>
 
 <p align="center">
@@ -14,7 +14,7 @@
   <a href="https://www.spotify.com/download"><img alt="Spotify desktop" src="https://shieldcn.dev/badge/Spotify-desktop-1db954.svg?variant=secondary&amp;logo=spotify"></a>
   <img alt="macOS supported" src="https://shieldcn.dev/badge/macOS-supported-171717.svg?variant=secondary&amp;logo=apple">
   <img alt="Linux supported" src="https://shieldcn.dev/badge/Linux-supported-171717.svg?variant=secondary&amp;logo=linux">
-  <a href="https://git-scm.com/download/win"><img alt="Windows via Git Bash" src="https://shieldcn.dev/badge/Windows-Git_Bash-0078d4.svg?variant=secondary&amp;logo=windows"></a>
+  <img alt="Windows supported" src="https://shieldcn.dev/badge/Windows-supported-0078d4.svg?variant=secondary&amp;logo=windows">
   <a href="https://github.com/kacigaya/spotblock/blob/main/LICENSE"><img alt="MIT License" src="https://shieldcn.dev/github/license/kacigaya/spotblock.svg?variant=secondary"></a>
 </p>
 
@@ -24,8 +24,8 @@
 - Adds ad and promo entries to Spotify's `prefs` file when it exists and Spotify is closed
 - Backs up the `hosts` file before every change and restores the newest backup in one command
 - Clears the Spotify cache when old ads persist
-- Installs as a `spotblock` command with a single `curl` line
-- Needs only Bash and standard system tools, plus `curl` to install
+- Installs as a `spotblock` command with one `curl` or PowerShell line
+- Needs only Bash and standard system tools, or Windows PowerShell 5.1 or later on Windows
 
 > [!IMPORTANT]
 > Blocking is partial. Most Spotify audio ads are served from the same API hosts that deliver music, and blocking those breaks playback. SpotBlock only blocks separate ad hosts, so some ads will still play.
@@ -37,16 +37,25 @@
 | Platform | Requirement |
 | --- | --- |
 | macOS | None |
-| Windows | [Git Bash](https://git-scm.com/download/win), run as Administrator |
 | Linux | None |
+| Windows (PowerShell) | None. Run PowerShell as Administrator. |
+| Windows (Git Bash) | [Git Bash](https://git-scm.com/download/win), run as Administrator |
 
 ### One-line install
+
+On macOS, Linux, or Git Bash:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/kacigaya/spotblock/main/spotblock.sh | bash
 ```
 
-This installs SpotBlock as a `spotblock` command and runs `block`.
+On Windows, in PowerShell run as Administrator:
+
+```powershell
+irm https://raw.githubusercontent.com/kacigaya/spotblock/main/spotblock.ps1 | iex
+```
+
+Both install SpotBlock as a `spotblock` command and run `block`. The PowerShell version installs to `C:\Program Files\SpotBlock` and adds its `bin` folder to the system `Path`. Open a new terminal to use `spotblock`.
 
 To read the script before running it:
 
@@ -54,6 +63,12 @@ To read the script before running it:
 curl -fsSLO https://raw.githubusercontent.com/kacigaya/spotblock/main/spotblock.sh
 less spotblock.sh
 bash spotblock.sh install
+```
+
+```powershell
+irm https://raw.githubusercontent.com/kacigaya/spotblock/main/spotblock.ps1 -OutFile spotblock.ps1
+notepad spotblock.ps1
+powershell -ExecutionPolicy Bypass -File .\spotblock.ps1 install
 ```
 
 ### Manual install
@@ -65,18 +80,20 @@ chmod +x spotblock.sh
 ./spotblock.sh install
 ```
 
-`install` downloads the script again from `main` instead of copying your local file. To run exactly the file you read without installing it, use `sudo ./spotblock.sh <command>` on macOS and Linux, or `./spotblock.sh <command>` on Windows.
+The Bash `install` downloads the script again from `main` instead of copying your local file. To run exactly the file you read without installing it, use `sudo ./spotblock.sh <command>` on macOS and Linux, or `./spotblock.sh <command>` in Git Bash. The PowerShell `install` copies the local file when run from one.
 
 ### Install options
 
 | Variable | Default | Effect |
 | --- | --- | --- |
-| `SPOTBLOCK_INSTALL_DIR` | `/usr/local/bin` | Where the `spotblock` command is installed. On Windows, falls back to `~/bin` when `/usr/local/bin` is not writable. |
+| `SPOTBLOCK_INSTALL_DIR` | `/usr/local/bin`, or `C:\Program Files\SpotBlock` for PowerShell | Where the `spotblock` command is installed. In Git Bash, falls back to `~/bin` when `/usr/local/bin` is not writable. In PowerShell, a folder you can write without Administrator rights goes on the user `Path`. |
 | `SPOTBLOCK_RUN_AFTER_INSTALL` | `1` | Set to `0` to install without running the blocker. |
+
+In PowerShell, set a variable with `$env:SPOTBLOCK_RUN_AFTER_INSTALL = '0'` before installing.
 
 ## Usage
 
-On macOS and Linux, run `sudo spotblock <command>`. On Windows, open Git Bash as Administrator and run `spotblock <command>`.
+On macOS and Linux, run `sudo spotblock <command>`. On Windows, open PowerShell or Git Bash as Administrator and run `spotblock <command>`.
 
 | Command | Description |
 | --- | --- |
@@ -111,14 +128,14 @@ Number of blocked domains: 5
 
 ## How it works
 
-`block` first checks that the `hosts` file is writable and stops without changing anything if it isn't. It then saves a timestamped copy of `hosts` to `$HOME/.spotify_adblock_backups/` and appends a `# Spotify Ad Blocking` header followed by the ad domains, each pointed to `127.0.0.1`. Domains already in the file are skipped.
+`block` first checks that the `hosts` file is writable and stops without changing anything if it isn't. It then saves a timestamped copy of `hosts` to `$HOME/.spotify_adblock_backups/` and appends a `# Spotify Ad Blocking` header followed by the ad domains, each pointed to `127.0.0.1`. Domains already in the file are skipped. The PowerShell version does not add the header when every domain is already there.
 
-`$HOME` is the home directory as seen by the script. Under `sudo` it can be root's home instead of yours, depending on sudo settings. Most Linux systems use `/root`.
+`$HOME` is the home directory as seen by the script. Under `sudo` it can be root's home instead of yours, depending on sudo settings. Most Linux systems use `/root`. The PowerShell version uses `%USERPROFILE%\.spotify_adblock_backups`.
 
 | Platform | Hosts file |
 | --- | --- |
 | macOS, Linux | `/etc/hosts` |
-| Windows | `C:\Windows\System32\drivers\etc\hosts` |
+| Windows | `%SystemRoot%\System32\drivers\etc\hosts`, usually `C:\Windows\System32\drivers\etc\hosts` |
 
 The list holds three ad network hosts (`googlesyndication.com`, `pubmatic.com`, `doubleclick.net`) and five Spotify `heads` ad hosts. A `hosts` file matches exact hostnames only, so wildcards are not supported.
 
@@ -149,13 +166,17 @@ On Linux, `~` in these paths is the home directory of the user who ran `sudo`, n
 ## Troubleshooting
 
 - **`prefs` changes don't stick.** Spotify rewrites `prefs` when it exits, so entries added while it runs are lost. `block` skips `prefs` while Spotify is running and says so. Quit Spotify fully, including from the tray or menu bar, then run `block` again.
-- **`block` fails on Windows with `cannot write`.** Editing `hosts` needs Administrator rights. Close Git Bash, reopen it with **Run as administrator**, and run `block` again.
+- **`block` fails on Windows with `cannot write`.** Editing `hosts` needs Administrator rights. Close PowerShell or Git Bash, reopen it with **Run as administrator**, and run `block` again.
+- **`running scripts is disabled on this system`.** Windows blocks `.ps1` files by default. Use the installed `spotblock` command, which runs the script with `-ExecutionPolicy Bypass`, or run `powershell -ExecutionPolicy Bypass -File .\spotblock.ps1 <command>`.
+- **`spotblock` is not found after installing on Windows.** Open a new terminal so it picks up the updated `Path`.
 - **Microsoft Store version of Spotify.** It keeps `prefs` under `%LOCALAPPDATA%\Packages\SpotifyAB.SpotifyMusic_*\LocalState\Spotify\prefs`, which SpotBlock does not handle. `hosts` blocking still applies.
 - **Snap version of Spotify on Linux.** SpotBlock does not handle the Snap `prefs` or cache paths. A custom `XDG_CONFIG_HOME` is also ignored.
-- **`status` says active but nothing changed.** `status` only checks for the `# Spotify Ad Blocking` header in `hosts`. It does not check each domain or whether Spotify uses them. The domain count is the number of lines containing `spotify`, so it shows 5 when all 8 domains are blocked.
+- **`status` says active but nothing changed.** `status` only checks for the `# Spotify Ad Blocking` header in `hosts`. It does not check each domain or whether Spotify uses them. In the Bash version, the domain count is the number of lines containing `spotify`, so it shows 5 when all 8 domains are blocked. The PowerShell version counts the listed domains found in `hosts`.
 - **No `Spotify.exe.bak` file.** SpotBlock never patches `Spotify.exe`, so no `.bak` file is created.
 
 ## Uninstall
+
+### macOS, Linux, and Git Bash
 
 1. Restore `hosts`:
 
@@ -176,11 +197,25 @@ On Linux, `~` in these paths is the home directory of the user who ran `sudo`, n
    sudo sh -c 'rm -rf "$HOME/.spotify_adblock_backups"'
    ```
 
+### PowerShell
+
+Run these in PowerShell as Administrator:
+
+```powershell
+spotblock restore
+Remove-Item -Recurse "$env:ProgramFiles\SpotBlock"
+Remove-Item -Recurse "$HOME\.spotify_adblock_backups"    # optional
+```
+
+Then remove `C:\Program Files\SpotBlock\bin` from the system `Path` under **System Properties > Environment Variables**.
+
+### Notes
+
 `restore` copies the newest backup, which was taken before the last `block` run. If you ran `block` more than once, that backup already contains SpotBlock entries. Delete the lines from the first `# Spotify Ad Blocking` header to the end of `hosts`, or copy the oldest backup instead. `restore` does not touch `prefs`. Remove the added entries by hand while Spotify is closed.
 
 ## Contributing and support
 
-- To suggest a domain, open a pull request that adds it to `ad_domains` in [`spotblock.sh`](spotblock.sh) and explain how you confirmed it serves ads without breaking playback.
+- To suggest a domain, open a pull request that adds it to `ad_domains` in [`spotblock.sh`](spotblock.sh) and `$AdDomains` in [`spotblock.ps1`](spotblock.ps1), and explain how you confirmed it serves ads without breaking playback.
 - Ask questions in [Discussions Q&A](https://github.com/kacigaya/spotblock/discussions/categories/q-a).
 - Report bugs in [Issues](https://github.com/kacigaya/spotblock/issues).
 
