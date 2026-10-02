@@ -168,7 +168,20 @@ BlockSpotifyAds() {
     "ui.show_friend_feed=false"
   )
 
-  if [ -f "$spotify_prefs" ]; then
+  # Fail before any change if hosts cannot be opened for writing.
+  if ! : 2>/dev/null >>"$hosts_file"; then
+    if IsWindows; then
+      echo "Error: cannot write $hosts_file. Run Git Bash as administrator." >&2
+    else
+      echo "Error: cannot write $hosts_file." >&2
+    fi
+    exit 1
+  fi
+
+  # Spotify rewrites prefs on exit, which would drop entries added while it runs.
+  if [ -f "$spotify_prefs" ] && IsSpotifyRunning; then
+    echo "Spotify is running; skipping prefs changes. Close Spotify and run block again to apply them." >&2
+  elif [ -f "$spotify_prefs" ]; then
     echo "Applying advanced blocking configurations..."
     for entry in "${spotify_prefs_entries[@]}"; do
       grep -Fq "$entry" "$spotify_prefs" || echo "$entry" >>"$spotify_prefs"
