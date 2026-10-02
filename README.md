@@ -5,7 +5,7 @@
 <h1 align="center">SpotBlock</h1>
 
 <p align="center">
-   <strong>Spotify ad blocker for macOS and Windows.</strong><br>
+   <strong>Spotify ad blocker for macOS, Linux, and Windows.</strong><br>
    <em>A single Bash script that blocks ad domains through your system's <code>hosts</code> file.</em>
 </p>
 
@@ -13,6 +13,7 @@
   <a href="https://www.gnu.org/software/bash/"><img alt="Bash" src="https://shieldcn.dev/badge/Bash-script-4eaa25.svg?variant=secondary&amp;logo=gnubash"></a>
   <a href="https://www.spotify.com/download"><img alt="Spotify desktop" src="https://shieldcn.dev/badge/Spotify-desktop-1db954.svg?variant=secondary&amp;logo=spotify"></a>
   <img alt="macOS supported" src="https://shieldcn.dev/badge/macOS-supported-171717.svg?variant=secondary&amp;logo=apple">
+  <img alt="Linux supported" src="https://shieldcn.dev/badge/Linux-supported-171717.svg?variant=secondary&amp;logo=linux">
   <a href="https://git-scm.com/download/win"><img alt="Windows via Git Bash" src="https://shieldcn.dev/badge/Windows-Git_Bash-0078d4.svg?variant=secondary&amp;logo=windows"></a>
   <a href="https://github.com/kacigaya/spotblock/blob/main/LICENSE"><img alt="MIT License" src="https://shieldcn.dev/github/license/kacigaya/spotblock.svg?variant=secondary"></a>
 </p>
@@ -37,7 +38,7 @@
 | --- | --- |
 | macOS | None |
 | Windows | [Git Bash](https://git-scm.com/download/win), run as Administrator |
-| Linux | None. Only `hosts` blocking works, because the `prefs` and cache paths are macOS paths. |
+| Linux | None |
 
 ### One-line install
 
@@ -64,7 +65,7 @@ chmod +x spotblock.sh
 ./spotblock.sh install
 ```
 
-`install` downloads the script again from `main` instead of copying your local file. To run exactly the file you read without installing it, use `sudo ./spotblock.sh <command>` on macOS or `./spotblock.sh <command>` on Windows.
+`install` downloads the script again from `main` instead of copying your local file. To run exactly the file you read without installing it, use `sudo ./spotblock.sh <command>` on macOS and Linux, or `./spotblock.sh <command>` on Windows.
 
 ### Install options
 
@@ -82,7 +83,7 @@ On macOS and Linux, run `sudo spotblock <command>`. On Windows, open Git Bash as
 | `block` | Add the ad domains to `hosts` and the entries to `prefs` |
 | `restore` | Copy the newest `hosts` backup back over `hosts` |
 | `status` | Show whether Spotify is running and whether the SpotBlock header is in `hosts` |
-| `clear-cache` | Delete the Spotify cache directory |
+| `clear-cache` | Delete the contents of the Spotify cache directory |
 
 Sample output from a test run with a fake `hosts` file:
 
@@ -126,9 +127,18 @@ If a `prefs` file exists and Spotify is closed, `block` also appends entries suc
 | Platform | Prefs file |
 | --- | --- |
 | macOS | `~/Library/Application Support/Spotify/prefs` |
+| Linux | `~/.config/spotify/prefs`, or `~/.var/app/com.spotify.Client/config/spotify/prefs` for Flatpak when the first is missing |
 | Windows | `%APPDATA%\Spotify\prefs` |
 
-`clear-cache` deletes `~/Library/Application Support/Spotify/PersistentCache` on macOS or `%APPDATA%\Spotify\Data` on Windows.
+`clear-cache` empties the Spotify cache directory and keeps the directory itself.
+
+| Platform | Cache directory |
+| --- | --- |
+| macOS | `~/Library/Application Support/Spotify/PersistentCache` |
+| Linux | `~/.cache/spotify` and `~/.var/app/com.spotify.Client/cache/spotify` (Flatpak) |
+| Windows | `%APPDATA%\Spotify\Data` |
+
+On Linux, `~` in these paths is the home directory of the user who ran `sudo`, not `/root`.
 
 > [!NOTE]
 > Restart Spotify after blocking so the `hosts` changes take effect. If ads persist, run `clear-cache` and restart again.
@@ -141,6 +151,7 @@ If a `prefs` file exists and Spotify is closed, `block` also appends entries suc
 - **`prefs` changes don't stick.** Spotify rewrites `prefs` when it exits, so entries added while it runs are lost. `block` skips `prefs` while Spotify is running and says so. Quit Spotify fully, including from the tray or menu bar, then run `block` again.
 - **`block` fails on Windows with `cannot write`.** Editing `hosts` needs Administrator rights. Close Git Bash, reopen it with **Run as administrator**, and run `block` again.
 - **Microsoft Store version of Spotify.** It keeps `prefs` under `%LOCALAPPDATA%\Packages\SpotifyAB.SpotifyMusic_*\LocalState\Spotify\prefs`, which SpotBlock does not handle. `hosts` blocking still applies.
+- **Snap version of Spotify on Linux.** SpotBlock does not handle the Snap `prefs` or cache paths. A custom `XDG_CONFIG_HOME` is also ignored.
 - **`status` says active but nothing changed.** `status` only checks for the `# Spotify Ad Blocking` header in `hosts`. It does not check each domain or whether Spotify uses them. The domain count is the number of lines containing `spotify`, so it shows 5 when all 8 domains are blocked.
 - **No `Spotify.exe.bak` file.** SpotBlock never patches `Spotify.exe`, so no `.bak` file is created.
 
